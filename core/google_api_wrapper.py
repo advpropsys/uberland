@@ -1,6 +1,8 @@
 import googlemaps as gm
 import os
 from dotenv import load_dotenv
+from datetime import datetime
+import json
 load_dotenv()
 
 client = gm.Client(key= os.getenv('GOOGLE_MAPS_API_KEY'))
@@ -45,7 +47,7 @@ class Distance(object):
     ):
         self.text = text
         self.value = value
-
+    
 class Duration(object):
     def __init__(
         self,
@@ -67,10 +69,10 @@ class Stop(object):
 class Vehicle(object):
     def __init__(
         self,
-        icon:str,
-        local_icon:str,
-        name:str,
-        type:str,
+        icon:str = None,
+        local_icon:str = None,
+        name:str = None,
+        type:str = None,
     ):
         self.icon = icon
         self.local_icon = local_icon
@@ -116,34 +118,33 @@ class TransitDetails(object):
 class Step(object):
     def __init__(
         self,
-        distance:dict,
-        duration:dict,
-        start_location:dict,
-        end_location:dict,
-        polyline:dict,
+        distance,
+        duration,
+        start_location,
+        end_location,
+        polyline,
         travel_mode:str,
         html_instructions:str = "",
         maneuver:str = None,
         transit_details:dict = None,
+        building_level:int = None,
         steps:list = [],
     ):
-        self.distance = Distance(**distance)
-        self.duration = Duration(**duration)
-        self.start_location = Location(**start_location)
-        self.end_location = Location(**end_location)
+        self.distance = Distance(**distance) if type(distance) is dict else distance
+        self.duration = Duration(**duration) if type(duration) is dict else duration
+        self.start_location = Location(**start_location) if type(start_location) is dict else start_location
+        self.end_location = Location(**end_location) if type(end_location) is dict else end_location
         self.html_instructions = html_instructions
-        self.polyline = Polyline(**polyline)
+        self.polyline = Polyline(**polyline) if type(polyline) is dict else polyline
         self.travel_mode = travel_mode
         self.manuever = maneuver
         self.transit_details = None if transit_details is None else TransitDetails(**transit_details)
+        self.building_level = building_level
         self.steps = [Step(**step) for step in steps]
-
 
 class Leg(object):
     def __init__(
         self,
-        arrival_time:dict,
-        departure_time:dict,
         distance:dict,
         duration:dict,
         start_address:str,
@@ -152,10 +153,13 @@ class Leg(object):
         end_location:dict,
         traffic_speed_entry:str,
         via_waypoint:str,
+        arrival_time:dict = None,
+        departure_time:dict = None,
+        duration_in_traffic:int = None,
         steps:list = [],
     ):
-        self.arrival_time = Time(**arrival_time)
-        self.departure_time = Time(**departure_time)
+        self.arrival_time = None if arrival_time is None else Time(**arrival_time)
+        self.departure_time = None if arrival_time is None else Time(**departure_time)
         self.distance = Distance(**distance)
         self.duration = Duration(**duration)
         self.start_address = start_address
@@ -163,6 +167,7 @@ class Leg(object):
         self.start_location = Location(**start_location)
         self.end_location = Location(**end_location)
         self.traffic_speed_entry = traffic_speed_entry
+        self.duration_in_traffic = duration_in_traffic
         self.via_waypoint = via_waypoint
         self.steps = [Step(**step) for step in steps]
 
@@ -192,12 +197,12 @@ def get_google_directions(
     departute_time = None,
     mode = "transit",
     transit_mode = ["bus", "subway", "train", "tram", "rail"],
-):
-    directions_result = client.directions(from_loc,
-                                     to_loc,
-                                     waypoints=waypoints,
+):                 
+    directions_result = client.directions(str(from_loc[0])+', '+str(from_loc[1]),
+                                     str(to_loc[0])+', '+str(to_loc[1]),
+                                    #  waypoints=waypoints,
                                      mode=mode,
-                                     departure_time=departute_time,
+                                     departure_time=departute_time, 
                                      transit_mode=transit_mode,
                                      alternatives=True)
     return [Direction(**direction) for direction in directions_result]

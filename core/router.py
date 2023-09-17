@@ -1,7 +1,9 @@
-from google_api_wrapper import get_google_directions, Direction, Leg, Step
+from .google_api_wrapper import get_google_directions, Direction, Leg, Step, Location, Distance
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from functools import reduce
+import json
+import dataclasses, json
+
 
 @dataclass
 class DirectionConfig:
@@ -26,13 +28,13 @@ def get_taxi_step(
         from_loc,
         to_loc,
         departute_time=departute_time,
-        mode="DRIVE"
+        mode="driving"
     )
     return Step(
         distance=taxi_step[0].legs[0].distance,
         duration=taxi_step[0].legs[0].duration,
-        start_location=from_loc,
-        end_location=to_loc,
+        start_location=Location(from_loc[0], from_loc[1]),
+        end_location=Location(to_loc[0], to_loc[1]),
         polyline=taxi_step[0].overview_polyline,
         travel_mode="TAXI"
     )
@@ -42,25 +44,26 @@ def handle_leg(
     leg:Leg
 ):
     steps = []
-    dep_time = leg.departure_time
+    dep_time = datetime.fromtimestamp(leg.departure_time.value)
     for step in leg.steps:
         next_step = step
         seconds_duration = step.duration.value
         if step.travel_mode == "WALKING":
-            walk_time = walk_time if config.elderly else walk_time * 1.5
-            if config.max_walk_time > step.duration.value:
+            walk_time = float(step.duration.value if config.elderly else step.duration.value * 1.5)
+            # print("WWWW", walk_time, float(config.max_walk_time), float(config.max_walk_time) > walk_time)
+            if float(config.max_walk_time) < walk_time:
                 taxi_step = get_taxi_step(
-                    step.start_location,
-                    step.end_location,
+                    [step.start_location.lat, step.start_location.lng],
+                    [step.end_location.lat, step.end_location.lng],
                     dep_time,
                 )
-                seconds_duration = step.duration.value
+                seconds_duration = walk_time
                 next_step = taxi_step
         elif step.travel_mode == "TRANSIT":
             if step.transit_details.line.vehicle.type == "BUS":
                 taxi_step = get_taxi_step(
-                    step.start_location,
-                    step.end_location,
+                    [step.start_location.lat, step.start_location.lng],
+                    [step.end_location.lat, step.end_location.lng],
                     dep_time,
                 )
                 seconds_duration = step.duration.value
@@ -79,11 +82,12 @@ def calc_transport_cost(steps:list[Step], transport_price:float):
     return steps.count(lambda step: step.travel_mode == "TRANSIT") * transport_price
 
 def calc_taxi_cost(steps:list[Step], taxi_price:float):
-    return sum(step.distance.value for step in steps if step.travel_mode == "TAXI")
+    return sum(step.distance.value for step in steps if step.travel_mode == "TAXI") / 1000 * taxi_price
 
 def calc_total_cost(steps:list[Step], transport_price, taxi_price):
-    return calc_transport_cost(steps, transport_price) * calc_taxi_cost(steps, taxi_price)
+    return calc_transport_cost(steps, transport_price) + calc_taxi_cost(steps, taxi_price)
 
+@dataclass
 class FinalDirection:
     steps:list[Step]
     total_duration:float
@@ -92,6 +96,42 @@ class FinalDirection:
     total_transport_cost:float
     total_taxi_cost:float
     co2:float
+
+def merge_steps(prev_step:Step, next_step:Step):
+    new_distance = Distance(
+        prev_step.distance.text + " + " + next_step.distance.text,
+        prev_step.distance.value + next_step.distance.value,
+    )
+    new_duration = Distance(
+        prev_step.duration.text + " + " + next_step.duration.text,
+        prev_step.duration.value + next_step.duration.value,
+    )
+
+    return Step(
+        new_distance,
+        new_duration,
+        prev_step.start_location,
+        next_step.end_location,
+        [prev_step.polyline,next_step.polyline],
+        travel_mode="TAXI",
+    )
+
+def merge_taxi_steps(steps):
+    merged_steps = []
+    prev_step = None
+    for step in steps:
+        if step.travel_mode == "TAXI":
+            if prev_step is None:
+                prev_step = step
+            else:
+                prev_step = merge_steps(prev_step, step)
+        else:
+            merged_steps.append(prev_step)
+            merged_steps.append(step)
+            prev_step = None
+    if prev_step is not None:
+        merged_steps.append(prev_step)
+    return merged_steps
 
 def handle_direction(
     config:DirectionConfig,
@@ -107,15 +147,15 @@ def handle_direction(
         total_transport_cost += calc_transport_cost(steps, config.transport_fee)
         total_taxi_cost += calc_taxi_cost(steps, config.taxi_fee)
         leg_steps.extend(steps)
-
+    
     return FinalDirection(
-        leg_steps,
+        merge_taxi_steps(leg_steps),
         total_duration,
         total_distance,
         total_cost,
         total_transport_cost,
         total_taxi_cost,
-        ,
+        0,
     )
 
 def get_direction(
