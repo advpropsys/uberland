@@ -126,11 +126,13 @@ def merge_taxi_steps(steps):
             else:
                 prev_step = merge_steps(prev_step, step)
         else:
-            merged_steps.append(prev_step)
+            if prev_step is not None:
+                merged_steps.append(prev_step)
+                prev_step = None
             merged_steps.append(step)
-            prev_step = None
     if prev_step is not None:
         merged_steps.append(prev_step)
+    print(merged_steps)
     return merged_steps
 
 def handle_direction(

@@ -99,6 +99,7 @@ pickup_loc=[]
 if pickup:
         pickup_place=gmaps.places_autocomplete(pickup)[0]['place_id']
         country=gmaps.place(pickup_place)['result']['address_components'][-2].get('long_name')
+        st.write(country)
         pickup_coords=list(gmaps.place(pickup_place)['result']['geometry']['location'].values())
         pickup_loc.append(pickup_coords)
         if "markers" in st.session_state:
@@ -111,6 +112,7 @@ targets=[]
 if target:
         target_place=gmaps.places_autocomplete(target)[0]['place_id']
         target_coords=list(gmaps.place(target_place)['result']['geometry']['location'].values())
+        st.write(target_coords)
         targets.append(target_coords)
         st.session_state['markers1'].append(folium.Marker(
             target_coords, popup='Target')
@@ -157,6 +159,7 @@ if st_data["last_clicked"]:
 directions = None    
  
 if len(pickup_loc)>0 and len(targets)>0:
+    st.write(pickup_loc,targets)
     directions = DirectionConfig(tuple(pickup_loc[0]), 
                                  targets,
                                  tuple(targets[-1]),
@@ -185,7 +188,7 @@ r,e,a = st.tabs(["Route","Eco Route","Alternative"])
 data = None
 if directions:
         data = get_direction(directions)
-
+        st.write(data)
 with r:
     if data:
         steps = data[0].steps

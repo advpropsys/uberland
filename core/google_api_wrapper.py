@@ -8,22 +8,26 @@ load_dotenv()
 client = gm.Client(key= os.getenv('GOOGLE_MAPS_API_KEY'))
 
 class Location(object):
-    def __init__(self, lat:float, lng:float):
+    def __init__(
+        self,
+        lat:float = None,
+        lng:float = None
+    ):
         self.lat = lat
         self.lng = lng
 
 class Polyline(object):
     def __init__(
         self,
-        points:str,
+        points:str = None,
     ):
         self.points = points
 
 class Bounds(object):
     def __init__(
         self,
-        northeast:dict,
-        southwest:dict,
+        northeast:dict = None,
+        southwest:dict = None,
     ):
         self.northeast = Location(**northeast)
         self.southwest = Location(**southwest)
@@ -31,9 +35,9 @@ class Bounds(object):
 class Time(object):
     def __init__(
         self,
-        text:str,
-        time_zone:str,
-        value:int,
+        text:str = None,
+        time_zone:str = None,
+        value:int = None,
     ):
         self.text = text
         self.time_zone = time_zone
@@ -42,8 +46,8 @@ class Time(object):
 class Distance(object):
     def __init__(
         self,
-        text:str,
-        value:int,
+        text:str = None,
+        value:int = None,
     ):
         self.text = text
         self.value = value
@@ -51,8 +55,8 @@ class Distance(object):
 class Duration(object):
     def __init__(
         self,
-        text:str,
-        value:int,
+        text:str = None,
+        value:int = None,
     ):
         self.text = text
         self.value = value
@@ -60,8 +64,8 @@ class Duration(object):
 class Stop(object):
     def __init__(
         self,
-        location:dict,
-        name:str,
+        location:dict = None,
+        name:str = None,
     ):
         self.location = Location(**location)
         self.name = name
@@ -82,12 +86,12 @@ class Vehicle(object):
 class Line(object):
     def __init__(
         self,
-        agencies:list,
-        color:str,
-        name:str,
-        short_name:str,
-        text_color:str,
-        vehicle:str,
+        agencies:list = None,
+        color:str = None,
+        name:str = None,
+        short_name:str = None,
+        text_color:str = None,
+        vehicle:str = None,
     ):
         self.agencies = agencies
         self.color = color
@@ -99,13 +103,14 @@ class Line(object):
 class TransitDetails(object):
     def __init__(
         self,
-        arrival_stop:dict,
-        arrival_time:dict,
-        departure_stop:dict,
-        departure_time:dict,
-        headsign:str,
-        line:dict,
-        num_stops:int,
+        arrival_stop:dict = None,
+        arrival_time:dict = None,
+        departure_stop:dict = None,
+        departure_time:dict = None,
+        headsign:str = None,
+        line:dict = None,
+        num_stops:int = None,
+        headway:int = None,
     ):
         self.arrival_stop = Stop(**arrival_stop)
         self.arrival_time = Time(**arrival_time)
@@ -114,16 +119,17 @@ class TransitDetails(object):
         self.headsign = headsign
         self.line = Line(**line)
         self.num_stops = num_stops
+        self.headway = headway
 
 class Step(object):
     def __init__(
         self,
-        distance,
-        duration,
-        start_location,
-        end_location,
-        polyline,
-        travel_mode:str,
+        distance = None,
+        duration = None,
+        start_location = None,
+        end_location = None,
+        polyline = None,
+        travel_mode:str = None,
         html_instructions:str = "",
         maneuver:str = None,
         transit_details:dict = None,
@@ -145,14 +151,14 @@ class Step(object):
 class Leg(object):
     def __init__(
         self,
-        distance:dict,
-        duration:dict,
-        start_address:str,
-        end_address:str,
-        start_location:dict,
-        end_location:dict,
-        traffic_speed_entry:str,
-        via_waypoint:str,
+        distance:dict = None,
+        duration:dict = None,
+        start_address:str = None,
+        end_address:str = None,
+        start_location:dict = None,
+        end_location:dict = None,
+        traffic_speed_entry:str = None,
+        via_waypoint:str = None,
         arrival_time:dict = None,
         departure_time:dict = None,
         duration_in_traffic:int = None,
@@ -174,13 +180,13 @@ class Leg(object):
 class Direction(object):
     def __init__(
         self,
-        bounds:dict,
-        copyrights:str,
-        legs:list,
-        overview_polyline:str,
-        summary:str,
-        warnings:list,
-        waypoint_order:list,
+        bounds:dict = None,
+        copyrights:str = None,
+        legs:list = None,
+        overview_polyline:str = None,
+        summary:str = None,
+        warnings:list = None,
+        waypoint_order:list = None,
     ):
         self.bounds = Bounds(**bounds)
         self.copyrights = copyrights
