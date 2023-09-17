@@ -11,13 +11,13 @@ class DirectionConfig:
     waypoints:list[tuple]
     to_loc:tuple
     departute_time:datetime
-    max_walk_time:int
-    # max_transfers:int
+    max_walk_time:float
     transit_mode:list[str]
+    avoid:list[str]
     elderly:bool
-    # budget:int
-    transport_fee:int
-    taxi_fee:int
+    transport_fee:float
+    taxi_fee:float
+    research_alpha_bus:float
 
 def get_taxi_step(
     from_loc:tuple,
@@ -50,7 +50,6 @@ def handle_leg(
         seconds_duration = step.duration.value
         if step.travel_mode == "WALKING":
             walk_time = float(step.duration.value if config.elderly else step.duration.value * 1.5)
-            # print("WWWW", walk_time, float(config.max_walk_time), float(config.max_walk_time) > walk_time)
             if float(config.max_walk_time) < walk_time:
                 taxi_step = get_taxi_step(
                     [step.start_location.lat, step.start_location.lng],
@@ -61,13 +60,15 @@ def handle_leg(
                 next_step = taxi_step
         elif step.travel_mode == "TRANSIT":
             if step.transit_details.line.vehicle.type == "BUS":
-                taxi_step = get_taxi_step(
-                    [step.start_location.lat, step.start_location.lng],
-                    [step.end_location.lat, step.end_location.lng],
-                    dep_time,
-                )
-                seconds_duration = step.duration.value
-                next_step = taxi_step
+                research_alpha_bus = step.distance.value / step.transit_details.num_stops
+                if research_alpha_bus > config.research_alpha_bus:
+                    taxi_step = get_taxi_step(
+                        [step.start_location.lat, step.start_location.lng],
+                        [step.end_location.lat, step.end_location.lng],
+                        dep_time,
+                    )
+                    seconds_duration = step.duration.value
+                    next_step = taxi_step
         dep_time += timedelta(seconds=seconds_duration)
         steps.append(next_step)
     return steps
@@ -79,7 +80,7 @@ def calc_total_distance(steps:list[Step]):
     return sum(step.distance.value for step in steps)
 
 def calc_transport_cost(steps:list[Step], transport_price:float):
-    return steps.count(lambda step: step.travel_mode == "TRANSIT") * transport_price
+    return sum(1 for step in steps if step.travel_mode == "TRANSIT") * transport_price
 
 def calc_taxi_cost(steps:list[Step], taxi_price:float):
     return sum(step.distance.value for step in steps if step.travel_mode == "TAXI") / 1000 * taxi_price
@@ -166,8 +167,9 @@ def get_direction(
     proposed_directions = get_google_directions(
         config.from_loc,
         config.to_loc,
-        waypoints=config.waypoints,
+        # waypoints=config.waypoints,
         departute_time=config.departute_time,
+        avoid=config.avoid,
         transit_mode=config.transit_mode,
     )
     return [handle_direction(config, direction) for direction in proposed_directions]

@@ -11,7 +11,8 @@ class Location(object):
     def __init__(
         self,
         lat:float = None,
-        lng:float = None
+        lng:float = None,
+        **kwargs
     ):
         self.lat = lat
         self.lng = lng
@@ -20,6 +21,7 @@ class Polyline(object):
     def __init__(
         self,
         points:str = None,
+        **kwargs
     ):
         self.points = points
 
@@ -28,6 +30,7 @@ class Bounds(object):
         self,
         northeast:dict = None,
         southwest:dict = None,
+        **kwargs
     ):
         self.northeast = Location(**northeast)
         self.southwest = Location(**southwest)
@@ -38,6 +41,7 @@ class Time(object):
         text:str = None,
         time_zone:str = None,
         value:int = None,
+        **kwargs
     ):
         self.text = text
         self.time_zone = time_zone
@@ -48,6 +52,7 @@ class Distance(object):
         self,
         text:str = None,
         value:int = None,
+        **kwargs
     ):
         self.text = text
         self.value = value
@@ -57,6 +62,7 @@ class Duration(object):
         self,
         text:str = None,
         value:int = None,
+        **kwargs
     ):
         self.text = text
         self.value = value
@@ -66,6 +72,7 @@ class Stop(object):
         self,
         location:dict = None,
         name:str = None,
+        **kwargs
     ):
         self.location = Location(**location)
         self.name = name
@@ -77,6 +84,7 @@ class Vehicle(object):
         local_icon:str = None,
         name:str = None,
         type:str = None,
+        **kwargs
     ):
         self.icon = icon
         self.local_icon = local_icon
@@ -92,6 +100,9 @@ class Line(object):
         short_name:str = None,
         text_color:str = None,
         vehicle:str = None,
+        url:str = None,
+        icon:str = None,
+        **kwargs
     ):
         self.agencies = agencies
         self.color = color
@@ -99,6 +110,8 @@ class Line(object):
         self.short_name = short_name
         self.text_color = text_color
         self.vehicle = Vehicle(**vehicle)
+        self.url = url
+        self.icon = icon
 
 class TransitDetails(object):
     def __init__(
@@ -111,6 +124,8 @@ class TransitDetails(object):
         line:dict = None,
         num_stops:int = None,
         headway:int = None,
+        trip_short_name:str = None,
+        **kwargs
     ):
         self.arrival_stop = Stop(**arrival_stop)
         self.arrival_time = Time(**arrival_time)
@@ -120,6 +135,7 @@ class TransitDetails(object):
         self.line = Line(**line)
         self.num_stops = num_stops
         self.headway = headway
+        self.trip_short_name = trip_short_name
 
 class Step(object):
     def __init__(
@@ -135,6 +151,7 @@ class Step(object):
         transit_details:dict = None,
         building_level:int = None,
         steps:list = [],
+        **kwargs
     ):
         self.distance = Distance(**distance) if type(distance) is dict else distance
         self.duration = Duration(**duration) if type(duration) is dict else duration
@@ -163,6 +180,7 @@ class Leg(object):
         departure_time:dict = None,
         duration_in_traffic:int = None,
         steps:list = [],
+        **kwargs
     ):
         self.arrival_time = None if arrival_time is None else Time(**arrival_time)
         self.departure_time = None if arrival_time is None else Time(**departure_time)
@@ -187,6 +205,7 @@ class Direction(object):
         summary:str = None,
         warnings:list = None,
         waypoint_order:list = None,
+        **kwargs
     ):
         self.bounds = Bounds(**bounds)
         self.copyrights = copyrights
@@ -202,13 +221,16 @@ def get_google_directions(
     waypoints = [],
     departute_time = None,
     mode = "transit",
+    avoid = [],
     transit_mode = ["bus", "subway", "train", "tram", "rail"],
-):                 
+):
+    print([str(waypoint[0]) + ', ' + str(waypoint[1]) for waypoint in waypoints])
     directions_result = client.directions(str(from_loc[0])+', '+str(from_loc[1]),
                                      str(to_loc[0])+', '+str(to_loc[1]),
-                                    #  waypoints=waypoints,
+                                     waypoints= [str(waypoint[0]) + ', ' + str(waypoint[1]) for waypoint in waypoints],
                                      mode=mode,
                                      departure_time=departute_time, 
                                      transit_mode=transit_mode,
+                                     avoid=avoid,
                                      alternatives=True)
     return [Direction(**direction) for direction in directions_result]

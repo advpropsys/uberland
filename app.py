@@ -6,6 +6,7 @@ import polyline
 import pandas as pd
 import googlemaps
 import datetime
+import itertools
 import random
 from core.router import get_direction, DirectionConfig
 from dotenv import load_dotenv
@@ -32,11 +33,7 @@ st.write("# UberLand perfect transit")
 st.write("### :orange[ Team: taxi drivers (Ryan Gosling)]")
 
 
-prices=pd.read_csv('/Users/apsys/Downloads/prices.csv')
-
-df=pd.DataFrame(columns=['name','path'])
-df=df.append({'name':'name','path':list(map(lambda x: x[::-1],polyline.decode('jzvmEyr{y[pAFAr@Am@j@?fCRpCt@\\Dd@Cn@Mh@QjA}@p@w@v@{Al@m@t@i@x@c@z@]|@W\\I~AQn@CF@jAN`AFrG`AnATnB^|@T|Bt@b@Px@b@hAp@p@f@`DvEt@d@l@r@zBbDbB~Br@zALd@dAdBx@jArAvAxAnAvDlCf@b@~BpBzCnCnA|A~@hAz@rAvAjCx@dB~@|BpBrFz@bD^hBRtAh@lDt@`D~BjKv@dD|@lDlB|Hx@pD`BfHZpB^dDRrCDdEBzGAvAKxCEhB?dBK~BIp@]jBm@fCm@hB]x@sBzDoAjCe@nAo@jCs@rCw@rCg@bBk@bCa@dCStBGvA?pDHrC\\bG\\tDT~BJ`B@fBIjCYxCy@jEk@bCWvAMlAI~@QnCBfDPtBd@dE\\`EHfBC|DUrD_@zD_@tD_@vBiAxEmA~FoBfImA~EOx@iA~Eg@pBgAlDaA~CYhAa@|B_@bCWtBMrBGfDI~DSvKGjAMdBUlB]lCs@dDm@bCo@vCsA|EcAnD}@hD_AxD_A~E{@bEkA`FwAtFeAdD[z@oAvCoCbGeBxDkAfCuAxBw@tAyAfCoBnDiDxEoE`GwAzB}@|AgAhCg@|Ak@vBWnAeBdJo@xEW|Be@tE_@vD]~CQ`AWfA}@lC{AbDk@`Ai@r@gBnBmCjCqBdBk@l@{@|@{@nAsCbFmAbBoD~DgB|Bu@dAq@hAe@~@m@zAeBfF}@lBgAtBq@tAyAzDgBbFk@xBs@hD}@fEgBtIoAhG]jCYxDGlDDdDFrAj@fGZdGJrBFrB?rBMlE[zDoAtKc@`C[xCg@rESdDO|EE`CCxEJrLRbDNxA`@|CR`AXrBLdBDjA?rBStH@|GC|FIfMDnAAdBAhAKxBOxAUnBO`Aa@bBy@pCy@|Bg@fA_@n@oAjBm@x@w@|@yAtAkAz@{XdQiW`P_GrDkCdB{B~AcClBcB|AgFnFmEpEg@b@_@XwA|Ak@f@u@n@iA`AoBtBoG~GwDzDo@f@IF]\\}FbG{EnFuAlBiDnFoAhCkAxCgBhD_@v@e@r@Qh@aDbGqHhNmB`DwFvKqBpDcBdDq@|@INiAvAiAfAaBhAkAf@gCfAq@T_Cr@}DbAi@J[@m@FgBHyBDiDMeDYcE{@mCUsBCuADaBFkB`@oAd@a@Vo@`@gAr@oA`Aq@j@o@h@yAfBs@rARNaB\\ECOj@Id@Ib@Mp@UtACTAJKFa@PMFUH_C\\KDYPYJM@OAEXm@lE')))}, ignore_index=True)
-df['color']=[(255,255,153)]*len(df)
+prices=pd.read_csv('data/prices.csv')
 
 
 m = folium.Map(location=(-33.87318,151.20701), tiles="https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYWR2cHJvcDExIiwiYSI6ImNsbWx3ZW02ZjBoMjEyaXBna2MyOGx2eDkifQ.XGZz3RDWSKBebpjuqsMJMg", attr='none', zoom_start=16)
@@ -62,7 +59,7 @@ def pdk_graph(df1):
 
     r = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip={'text': '{name}'})
     return st.pydeck_chart(r)
-pdk_graph(df)
+# pdk_graph(df)
 
 fg = folium.FeatureGroup(name="Markers")
 fg1 = folium.FeatureGroup(name="Markers1")
@@ -93,12 +90,12 @@ with right:
     target = st.text_input('Write target point')
     st.write('Target location')
     st_data1 = st_folium(m1, width=720, feature_group_to_add=fg1, key='1')
-    
+
 pickup_loc=[]
 
 if pickup:
         pickup_place=gmaps.places_autocomplete(pickup)[0]['place_id']
-        country=gmaps.place(pickup_place)['result']['address_components'][-2].get('long_name')
+        country=gmaps.place(pickup_place, fields=['formatted_address'])['result']["formatted_address"].split(',')[-1]
         st.write(country)
         pickup_coords=list(gmaps.place(pickup_place)['result']['geometry']['location'].values())
         pickup_loc.append(pickup_coords)
@@ -107,6 +104,7 @@ if pickup:
             pickup_coords, popup='Pickup')
         )
         
+
 targets=[]
 
 if target:
@@ -126,19 +124,22 @@ with left:
     high_state = st.checkbox('Avoid highways 🛣️')
     ferry_state = st.checkbox('Avoid ferries ⛴️')
     indoor_state = st.checkbox('Avoid indoor 🐹')
-    fewer_walk_state = st.checkbox('Fewer walking 🩼👩🏿‍🦼')
-    fewer_transfers_state = st.checkbox('Fewer transfers 🔂')
+    # fewer_walk_state = st.checkbox('Fewer walking 🩼👩🏿‍🦼')
+    # fewer_transfers_state = st.checkbox('Fewer transfers 🔂')
     elderly_state = st.checkbox('Elderly 👵🏿')
     
 with right:
     
     if country: 
-        target_cost_transport = prices['sorting_1'][prices['odd 2'] == country].to_list()[0]
+        try:
+            target_cost_transport = prices['sorting_1'][prices['odd 2'] == str(country).lstrip().rstrip()].to_list()[0]
+        except:
+            target_cost_transport = 1
 
-    budget_state = st.text_input("Budget 💷")
-    transit_mode = st.selectbox("Transport",["bus"]) #  c nizhney tak nado https://stackoverflow.com/questions/58053077/get-distance-from-google-cloud-maps-directions-api
-    max_walk_time = float(st.text_input("Max walk time ⌚️"))*60
-    max_transfers = st.text_input('Max transfers')
+    # budget_state = st.text_input("Budget 💷")
+    # transit_mode = st.selectbox("Transport",["bus"]) #  c nizhney tak nado https://stackoverflow.com/questions/58053077/get-distance-from-google-cloud-maps-directions-api
+    max_walk_time = float(st.text_input("Max walk time ⌚️",10))*60
+    # max_transfers = st.text_input('Max transfers')
     departute_time = datetime.datetime.now()
 
 
@@ -155,28 +156,37 @@ if st_data["last_clicked"]:
             pickup_coords, popup='Pickup')
         )
 
+if st_data1["last_clicked"]:
+    targets.append(list(st_data1["last_clicked"].values())) # target location
+    st.session_state['markers1'].append(folium.Marker(
+        list(st_data1["last_clicked"].values())
+    ))
+
 
 directions = None    
  
 if len(pickup_loc)>0 and len(targets)>0:
-    st.write(pickup_loc,targets)
-    directions = DirectionConfig(tuple(pickup_loc[0]), 
-                                 targets,
-                                 tuple(targets[-1]),
-                                 departute_time,
-                                 max_walk_time,
-                                 transit_mode,
-                                 elderly_state,
-                                 float(target_cost_transport),
-                                 float(target_cost_transport),
+    
+    length = float(2000)
+    number_of_stops = int(5)
+    research_alpha_bus = length/number_of_stops
+    # st.write(targets[:-2])
+    st.write(tuple(pickup_loc[0]))
+    st.write(tuple(targets[-1]))
+    directions = DirectionConfig(from_loc=tuple(pickup_loc[0]), 
+                                 waypoints=targets[:-2],
+                                 to_loc=tuple(targets[-1]),
+                                 departute_time=departute_time,
+                                 max_walk_time=max_walk_time,
+                                 transit_mode=["bus","subway","train"],
+                                 elderly=elderly_state,
+                                 transport_fee=float(target_cost_transport),
+                                 taxi_fee=float(target_cost_transport),
+                                 research_alpha_bus=research_alpha_bus,
+                                 avoid=['avoidToll' if toll_state else ""]
                                  )
     
-    
-if st_data1["last_clicked"]:
-    targets.append(st_data1["last_clicked"]) # target location
-    st.session_state['markers1'].append(folium.Marker(
-        list(st_data1["last_clicked"].values())
-    ))
+
     
 statistics = None
 
@@ -188,7 +198,6 @@ r,e,a = st.tabs(["Route","Eco Route","Alternative"])
 data = None
 if directions:
         data = get_direction(directions)
-        st.write(data)
 with r:
     if data:
         steps = data[0].steps
@@ -199,16 +208,20 @@ with r:
             if type(step.polyline) is list:
                 c=random.randrange(1,255)
                 c1=random.randrange(1,255)
+                st.write(step.polyline)
+                # merged = list(itertools.chain(*[step.polyline]))
+                # st.write(list(map(lambda x: x.points,merged)))
                 for i in step.polyline:
-                    polys = polyline.decode(str(i.points))
+                    polys = polyline.decode(str(i))
                     df_r=df_r.append({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,c1,c)}, ignore_index=True)
+                   
             else: 
                 polys = polyline.decode(str(step.polyline.points))
                 df_r=df_r.append({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,random.randrange(1,255),random.randrange(1,255))}, ignore_index=True)
         
         pdk_graph(df_r)
-        st.write("Arrival time:",(datetime.datetime.now()+datetime.timedelta(seconds=data[0].total_duration)).strftime("%H:%M"))
-        st.write("Total Cost:", str(data[0].total_cost), "USD")
-        st.write("Total Taxi Cost:", str(data[0].total_taxi_cost), "USD")
+        st.write("Arrival time:",(datetime.datetime.now()+datetime.timedelta(seconds=data[0].total_duration)).strftime("%H:%M, %d.%m"))
+        st.write("Total Cost:", str(round(data[0].total_cost,2)), "USD")
+        st.write("Total Taxi Cost:", str(round(data[0].total_taxi_cost, 2)), "USD")
 
 
