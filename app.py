@@ -84,7 +84,6 @@ try:
         fg.add_child(marker)
     for marker in st.session_state["markers1"]:
         fg1.add_child(marker)
-        
 
     pickup_coords=None
     target_coords=None
@@ -136,8 +135,6 @@ try:
         high_state = st.checkbox('Avoid highways 🛣️')
         ferry_state = st.checkbox('Avoid ferries ⛴️')
         indoor_state = st.checkbox('Avoid indoor 🐹')
-        # fewer_walk_state = st.checkbox('Fewer walking 🩼👩🏿‍🦼')
-        # fewer_transfers_state = st.checkbox('Fewer transfers 🔂')
         elderly_state = st.checkbox('Elderly 👵🏿')
         
     with right:
@@ -151,7 +148,6 @@ try:
         # budget_state = st.text_input("Budget 💷")
         # transit_mode = st.selectbox("Transport",["bus"]) #  c nizhney tak nado https://stackoverflow.com/questions/58053077/get-distance-from-google-cloud-maps-directions-api
         max_walk_time = float(st.text_input("Max walk time ⌚️",10))*60
-        # max_transfers = st.text_input('Max transfers')
         departute_time = datetime.datetime.now()
 
 
@@ -197,9 +193,6 @@ try:
                                     research_alpha_bus=research_alpha_bus,
                                     avoid=['avoidToll' if toll_state else ""]
                                     )
-        
-
-        
     statistics = None
 
     if statistics:
@@ -235,15 +228,16 @@ try:
             st.write("Arrival time:",(datetime.datetime.now()+datetime.timedelta(seconds=data[0].total_duration)).strftime("%H:%M, %d.%m"))
             st.write("Total Cost:", str(round(data[0].total_cost,2)), "USD")
             st.write("Total Taxi Cost:", str(round(data[0].total_taxi_cost, 2)), "USD")
+            st.write("CO2 emissions:", str(round(data[0].co2, 2)))
             
 except Exception as e:
-    response = g4f.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": f"please explain in detail and with links what the problem {e} is and what caused in python code."}],
-            provider=provider,
-            proxy='zPM6ju8G:inyA2RYN@91.204.182.244:63522'
-        )
-    st.write(response)
+    # response = g4f.ChatCompletion.create(
+    #         model="gpt-3.5-turbo",
+    #         messages=[{"role": "user", "content": f"so you got this error {e}, describe this error to end user (dont tell anything about code error or something)"}],
+    #         provider=provider,
+    #         proxy='zPM6ju8G:inyA2RYN@91.204.182.244:63522'
+    #     )
+    st.write(e)
     
 
 
