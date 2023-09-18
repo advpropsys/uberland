@@ -212,12 +212,12 @@ with r:
                 # merged = list(itertools.chain(*[step.polyline]))
                 # st.write(list(map(lambda x: x.points,merged)))
                 for i in step.polyline:
-                    polys = polyline.decode(str(i))
-                    df_r.loc[len(df_r)] = {'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,c1,c)}
+                    polys = polyline.decode(str(i.points))
+                    df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,c1,c)} )
                    
             else: 
                 polys = polyline.decode(str(step.polyline.points))
-                df_r.loc[len(df_r)] = {{'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,random.randrange(1,255),random.randrange(1,255))}}
+                df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,random.randrange(1,255),random.randrange(1,255))})
         
         pdk_graph(df_r)
         st.write("Arrival time:",(datetime.datetime.now()+datetime.timedelta(seconds=data[0].total_duration)).strftime("%H:%M, %d.%m"))
