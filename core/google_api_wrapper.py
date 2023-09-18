@@ -7,6 +7,7 @@ load_dotenv()
 
 client = gm.Client(key= os.getenv('GOOGLE_MAPS_API_KEY'))
 
+# The Location class is a basic object that represents a location.
 class Location(object):
     def __init__(
         self,
@@ -17,6 +18,8 @@ class Location(object):
         self.lat = lat
         self.lng = lng
 
+# The Polyline class is a representation of a series of connected line segments in a two-dimensional
+# space.
 class Polyline(object):
     def __init__(
         self,
@@ -25,6 +28,7 @@ class Polyline(object):
     ):
         self.points = points
 
+# The Bounds class is a Python object that represents a range of values.
 class Bounds(object):
     def __init__(
         self,
@@ -35,6 +39,7 @@ class Bounds(object):
         self.northeast = Location(**northeast)
         self.southwest = Location(**southwest)
 
+# The Time class is a basic representation of time in hours, minutes, and seconds.
 class Time(object):
     def __init__(
         self,
@@ -47,6 +52,7 @@ class Time(object):
         self.time_zone = time_zone
         self.value = value
 
+# The Distance class is a Python object that represents a distance measurement.
 class Distance(object):
     def __init__(
         self,
@@ -57,6 +63,7 @@ class Distance(object):
         self.text = text
         self.value = value
     
+# The Duration class is a Python object that represents a duration of time.
 class Duration(object):
     def __init__(
         self,
@@ -67,6 +74,7 @@ class Duration(object):
         self.text = text
         self.value = value
 
+# The Stop class is a basic object class.
 class Stop(object):
     def __init__(
         self,
@@ -77,6 +85,7 @@ class Stop(object):
         self.location = Location(**location)
         self.name = name
 
+# The Vehicle class is a base class for all types of vehicles.
 class Vehicle(object):
     def __init__(
         self,
@@ -91,6 +100,7 @@ class Vehicle(object):
         self.name = name
         self.type = type
 
+# The Line class is a blueprint for creating line objects.
 class Line(object):
     def __init__(
         self,
@@ -113,6 +123,7 @@ class Line(object):
         self.url = url
         self.icon = icon
 
+# The TransitDetails class is a Python object that represents details about a transit route.
 class TransitDetails(object):
     def __init__(
         self,
@@ -137,6 +148,7 @@ class TransitDetails(object):
         self.headway = headway
         self.trip_short_name = trip_short_name
 
+# The Step class is a basic object in Python.
 class Step(object):
     def __init__(
         self,
@@ -153,6 +165,43 @@ class Step(object):
         steps:list = [],
         **kwargs
     ):
+        """
+        The function is a constructor for a class that initializes its attributes with optional
+        arguments.
+        
+        :param distance: The distance between the start and end locations of the route
+        :param duration: The duration parameter represents the duration of the route or step. It can be
+        specified as a dictionary with the following keys:
+        :param start_location: The starting location of the route. It can be specified as a dictionary
+        with latitude and longitude values or as an instance of the Location class
+        :param end_location: The end_location parameter represents the location where the route ends. It
+        can be specified as a dictionary with the following keys:
+        :param polyline: The `polyline` parameter is used to represent the encoded polyline string that
+        represents the path of the route. It is used to draw the route on a map or to calculate the
+        distance and duration of the route
+        :param travel_mode: The travel mode parameter specifies the mode of transportation for the
+        route. It can be one of the following values: "driving", "walking", "bicycling", "transit"
+        :type travel_mode: str
+        :param html_instructions: The `html_instructions` parameter is a string that contains the
+        formatted instructions for a particular step in a route. These instructions are typically
+        displayed to the user in a user-friendly format
+        :type html_instructions: str
+        :param maneuver: The `maneuver` parameter is used to specify a maneuver or action that needs to
+        be taken at a certain point during the navigation. It can be used to provide instructions such
+        as "turn left", "turn right", "continue straight", etc
+        :type maneuver: str
+        :param transit_details: The `transit_details` parameter is a dictionary that contains additional
+        information about a transit step in a directions result. It includes details such as the arrival
+        stop, departure stop, line name, and transit mode
+        :type transit_details: dict
+        :param building_level: The `building_level` parameter is an optional integer that represents the
+        level or floor of a building. It is used to specify the level at which a particular step or
+        instruction occurs during a navigation or transit route
+        :type building_level: int
+        :param steps: The `steps` parameter is a list of `Step` objects. Each `Step` object represents a
+        single step in a set of directions
+        :type steps: list
+        """
         self.distance = Distance(**distance) if type(distance) is dict else distance
         self.duration = Duration(**duration) if type(duration) is dict else duration
         self.start_location = Location(**start_location) if type(start_location) is dict else start_location
@@ -165,6 +214,7 @@ class Step(object):
         self.building_level = building_level
         self.steps = [Step(**step) for step in steps]
 
+# The Leg class is a basic representation of a leg in a humanoid body.
 class Leg(object):
     def __init__(
         self,
@@ -195,6 +245,7 @@ class Leg(object):
         self.via_waypoint = via_waypoint
         self.steps = [Step(**step) for step in steps]
 
+# The Direction class is a basic template for representing directions.
 class Direction(object):
     def __init__(
         self,
@@ -216,6 +267,7 @@ class Direction(object):
         self.waypoint_order = waypoint_order
 
 def get_google_directions(
+    
     from_loc,
     to_loc,
     waypoints = [],
@@ -224,6 +276,33 @@ def get_google_directions(
     avoid = [],
     transit_mode = ["bus", "subway", "train", "tram", "rail"],
 ):
+    """
+    The function `get_google_directions` takes in various parameters such as the starting location,
+    destination, waypoints, departure time, mode of transportation, and avoidance preferences, and
+    returns a list of directions from the Google Maps API.
+    
+    :param from_loc: The starting location for the directions. It should be a tuple of latitude and
+    longitude coordinates
+    :param to_loc: The destination location. It is a tuple containing the latitude and longitude of the
+    destination
+    :param waypoints: The waypoints parameter is a list of locations that you want to include as
+    intermediate stops in your directions. Each waypoint is specified as a tuple of latitude and
+    longitude coordinates
+    :param departute_time: The `departure_time` parameter is used to specify the desired departure time
+    for the directions. It can be specified as a datetime object or as an integer representing the
+    number of seconds since the Unix epoch. If not specified, the current time will be used as the
+    departure time
+    :param mode: The "mode" parameter specifies the mode of transportation to use for the directions.
+    The default value is "transit", which means public transportation will be used. Other possible
+    values include "driving" for driving directions, "walking" for walking directions, and "bicycling"
+    for bicycling, defaults to transit (optional)
+    :param avoid: The `avoid` parameter is used to specify certain features to avoid when calculating
+    directions. It can be a list of strings containing the following options:
+    :param transit_mode: The `transit_mode` parameter is a list of transportation modes that you want to
+    include in your directions. The available options are "bus", "subway", "train", "tram", and "rail".
+    By default, all of these modes are included in the directions
+    :return: a list of Direction objects.
+    """
     print([str(waypoint[0]) + ', ' + str(waypoint[1]) for waypoint in waypoints])
     directions_result = client.directions(str(from_loc[0])+', '+str(from_loc[1]),
                                      str(to_loc[0])+', '+str(to_loc[1]),

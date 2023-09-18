@@ -36,10 +36,22 @@ st.write("### :orange[ Team: taxi drivers (Ryan Gosling)]")
 prices=pd.read_csv('data/prices.csv')
 
 
+# The line `m = folium.Map(...)` is creating a Folium map object. It sets the initial location of the
+# map to (-33.87318,151.20701), which corresponds to the latitude and longitude of a specific
+# location. It also specifies the map tiles to be used from the Mapbox API and sets the zoom level of
+# the map to 16.
 m = folium.Map(location=(-33.87318,151.20701), tiles="https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYWR2cHJvcDExIiwiYSI6ImNsbWx3ZW02ZjBoMjEyaXBna2MyOGx2eDkifQ.XGZz3RDWSKBebpjuqsMJMg", attr='none', zoom_start=16)
 m1 = folium.Map(location=(-33.87318,151.20701), tiles="https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiYWR2cHJvcDExIiwiYSI6ImNsbWx3ZW02ZjBoMjEyaXBna2MyOGx2eDkifQ.XGZz3RDWSKBebpjuqsMJMg", attr='none', zoom_start=16)
 
 def pdk_graph(df1):
+    """
+    The function `pdk_graph` takes a DataFrame `df1` as input and creates a PyDeck graph visualization
+    based on the data in the DataFrame.
+    
+    :param df1: The parameter `df1` is a DataFrame that contains the data for creating the path layer in
+    the PyDeck graph. It should have the following columns: path, color, name
+    :return: a PyDeck chart object.
+    """
     view_state = pdk.ViewState(
         latitude=df1.iloc[0]['path'][0][1],
         longitude=df1.iloc[0]['path'][0][0],
@@ -59,7 +71,7 @@ def pdk_graph(df1):
 
     r = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip={'text': '{name}'})
     return st.pydeck_chart(r)
-# pdk_graph(df)
+
 
 fg = folium.FeatureGroup(name="Markers")
 fg1 = folium.FeatureGroup(name="Markers1")
@@ -69,10 +81,6 @@ for marker in st.session_state["markers"]:
 for marker in st.session_state["markers1"]:
     fg1.add_child(marker)
     
-    
-
-
-
 
 pickup_coords=None
 target_coords=None
