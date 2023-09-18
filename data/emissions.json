@@ -1,9 +1,11 @@
 {
-    "bus":0.3,
-    "taxi":0.356,
-    "walking":0,
-    "bicycle":0,
-    "tram": 0.000164,
-    "subway":0.000164,
-    "rail":0.000164
+    "BUS":0.3,
+    "TAXI":0.356,
+    "WALKING":0,
+    "BICYCLE":0,
+    "TRAN": 0.000164,
+    "SUBWAY":0.000164,
+    "RAIL":0.000164,
+    "HEAVY_RAIL":0.000324,
+    "DEFAULT":0.000164
 }

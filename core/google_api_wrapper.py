@@ -163,6 +163,7 @@ class Step(object):
         transit_details:dict = None,
         building_level:int = None,
         steps:list = [],
+        emissions:float = 0.0,
         **kwargs
     ):
         """
@@ -201,6 +202,8 @@ class Step(object):
         :param steps: The `steps` parameter is a list of `Step` objects. Each `Step` object represents a
         single step in a set of directions
         :type steps: list
+        :param emissions: The `emissions` parameter is a float nummber that represents a number of CO2 emissions per step
+        :type emissions: float
         """
         self.distance = Distance(**distance) if type(distance) is dict else distance
         self.duration = Duration(**duration) if type(duration) is dict else duration
@@ -213,6 +216,7 @@ class Step(object):
         self.transit_details = None if transit_details is None else TransitDetails(**transit_details)
         self.building_level = building_level
         self.steps = [Step(**step) for step in steps]
+        self.emissions = emissions * (self.distance.value / 1000)
 
 # The Leg class is a basic representation of a leg in a humanoid body.
 class Leg(object):
@@ -303,7 +307,6 @@ def get_google_directions(
     By default, all of these modes are included in the directions
     :return: a list of Direction objects.
     """
-    print([str(waypoint[0]) + ', ' + str(waypoint[1]) for waypoint in waypoints])
     directions_result = client.directions(str(from_loc[0])+', '+str(from_loc[1]),
                                      str(to_loc[0])+', '+str(to_loc[1]),
                                      waypoints= [str(waypoint[0]) + ', ' + str(waypoint[1]) for waypoint in waypoints],

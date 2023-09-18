@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import json
 import dataclasses, json
 
+with open('./data/emissions.json') as json_file:
+    emissions_info = json.load(json_file)
 
 @dataclass
 # The DirectionConfig class is used to configure directions.
@@ -53,7 +55,8 @@ def get_taxi_step(
         start_location=Location(from_loc[0], from_loc[1]),
         end_location=Location(to_loc[0], to_loc[1]),
         polyline=taxi_step[0].overview_polyline,
-        travel_mode="TAXI"
+        travel_mode="TAXI",
+        emissions=emissions_info["TAXI"],
     )
 
 def handle_leg(
@@ -82,6 +85,7 @@ def handle_leg(
         next_step = step
         seconds_duration = step.duration.value
         if step.travel_mode == "WALKING":
+            step.emissions = emissions_info["WALKING"] * step.distance.value / 1000
             walk_time = float(step.duration.value if config.elderly else step.duration.value * 1.5)
             if float(config.max_walk_time) < walk_time:
                 taxi_step = get_taxi_step(
@@ -92,6 +96,7 @@ def handle_leg(
                 seconds_duration = walk_time
                 next_step = taxi_step
         elif step.travel_mode == "TRANSIT":
+            step.emissions = (emissions_info[step.transit_details.line.vehicle.type] if step.transit_details.line.vehicle.type in emissions_info else emissions_info["DEFAULT"]) * step.distance.value / 1000
             if step.transit_details.line.vehicle.type == "BUS":
                 research_alpha_bus = step.distance.value / step.transit_details.num_stops
                 if research_alpha_bus > config.research_alpha_bus:
@@ -176,6 +181,16 @@ def calc_total_cost(steps:list[Step], transport_price, taxi_price):
     """
     return calc_transport_cost(steps, transport_price) + calc_taxi_cost(steps, taxi_price)
 
+def calc_total_emissions(steps:list[Step]):
+    """
+    The function calculates the total CO2 emissions.
+    
+    :param steps: A list of Step objects representing the different steps of a journey
+    :type steps: list[Step]
+    :return: the total emissions, which is the sum of each step emissions.
+    """
+    return sum(step.emissions for step in steps)
+
 @dataclass
 # The FinalDirection class is a placeholder for a class that will handle the final direction of an
 # object.
@@ -218,6 +233,7 @@ def merge_steps(prev_step:Step, next_step:Step):
         next_step.end_location,
         [prev_step.polyline,next_step.polyline],
         travel_mode="TAXI",
+        emissions=emissions_info["TAXI"],
     )
 
 def merge_taxi_steps(steps):
@@ -244,11 +260,10 @@ def merge_taxi_steps(steps):
             merged_steps.append(step)
     if prev_step is not None:
         merged_steps.append(prev_step)
-    print(merged_steps)
     return merged_steps
 
 def handle_direction(
-    
+
     config:DirectionConfig,
     direction:Direction,
 ):
@@ -266,7 +281,7 @@ def handle_direction(
     :return: an instance of the `FinalDirection` class.
     """
     leg_steps = []
-    total_duration, total_distance, total_cost, total_transport_cost, total_taxi_cost = 0, 0, 0, 0, 0
+    total_duration, total_distance, total_cost, total_transport_cost, total_taxi_cost, total_emissions = 0, 0, 0, 0, 0, 0
     for leg in direction.legs:
         steps = handle_leg(config, leg)
         total_duration += calc_total_duration(steps)
@@ -274,6 +289,7 @@ def handle_direction(
         total_cost += calc_total_cost(steps, config.transport_fee, config.taxi_fee)
         total_transport_cost += calc_transport_cost(steps, config.transport_fee)
         total_taxi_cost += calc_taxi_cost(steps, config.taxi_fee)
+        total_emissions += calc_total_emissions(steps)
         leg_steps.extend(steps)
     
     return FinalDirection(
@@ -283,7 +299,7 @@ def handle_direction(
         total_cost,
         total_transport_cost,
         total_taxi_cost,
-        0,
+        total_emissions,
     )
 
 def get_direction(

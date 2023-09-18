@@ -27,7 +27,6 @@ try:
     st.set_page_config(layout="wide")
 
     if "markers" not in st.session_state:
-        print("markers1")
         st.session_state["markers"] = []
         
     if "markers1" not in st.session_state:
