@@ -217,9 +217,9 @@ with r:
                 c=random.randrange(1,255)
                 c1=random.randrange(1,255)
                 st.write(step.polyline)
-                # merged = list(itertools.chain(*[step.polyline]))
+                merged = list(itertools.chain(*[step.polyline]))
                 # st.write(list(map(lambda x: x.points,merged)))
-                for i in step.polyline:
+                for i in merged:
                     polys = polyline.decode(str(i.points))
                     df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,c1,c)} )
                    
