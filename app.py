@@ -20,6 +20,12 @@ provider=g4f.Provider.You
 
 load_dotenv()
 
+if 'center' not in st.session_state:
+    st.session_state['center'] = (-33.87318,151.20701)
+if 'center1' not in st.session_state:
+    st.session_state['center1'] = (-33.87318,151.20701)
+
+
 try:
     gmaps = googlemaps.Client(key=os.getenv('GOOGLE_MAPS_API_KEY'))
 
@@ -34,7 +40,7 @@ try:
 
 
     st.write("# UberLand perfect transit")
-    st.write("### :orange[ Team: taxi drivers (Ryan Gosling)]")
+    st.write("### :orange[ Team: taxi drivers]")
 
 
     prices=pd.read_csv('data/prices.csv')
@@ -108,7 +114,6 @@ try:
     if pickup:
             pickup_place=gmaps.places_autocomplete(pickup)[0]['place_id']
             country=gmaps.place(pickup_place, fields=['formatted_address'])['result']["formatted_address"].split(',')[-1]
-            st.write(country)
             pickup_coords=list(gmaps.place(pickup_place)['result']['geometry']['location'].values())
             pickup_loc.append(pickup_coords)
             if "markers" in st.session_state:
@@ -122,7 +127,6 @@ try:
     if target:
             target_place=gmaps.places_autocomplete(target)[0]['place_id']
             target_coords=list(gmaps.place(target_place)['result']['geometry']['location'].values())
-            st.write(target_coords)
             targets.append(target_coords)
             st.session_state['markers1'].append(folium.Marker(
                 target_coords, popup='Target')
@@ -189,8 +193,8 @@ try:
         number_of_stops = int(5)
         research_alpha_bus = length/number_of_stops
         # st.write(targets[:-2])
-        st.write(tuple(pickup_loc[0]))
-        st.write(tuple(targets[-1]))
+        # st.write(tuple(pickup_loc[0]))
+        # st.write(tuple(targets[-1]))
         directions = DirectionConfig(from_loc=tuple(pickup_loc[0]), 
                                     waypoints=targets[:-2],
                                     to_loc=tuple(targets[-1]),
@@ -203,10 +207,6 @@ try:
                                     research_alpha_bus=research_alpha_bus,
                                     avoid=['avoidToll' if toll_state else ""]
                                     )
-    statistics = None
-
-    if statistics:
-        st.metric("CO2 emissions reduced by","0.3kg",-1.2)
 
     r,e,a = st.tabs(["Route","Eco Route","Alternative"])
 
@@ -216,19 +216,25 @@ try:
     with r:
         if data:
             steps = data[0].steps
-            st.metric("CO2 emissions reduced by",'10%',-data[0].co2)
+            st.metric("CO2 emissions","co2",-round(data[0].co2,2))
             df_r=pd.DataFrame(columns=['name','path','color'])
-            for step in steps:
-                st.write(step)
+            for idx, step in enumerate(steps):
+                tmp=step.html_instructions.replace("\n","")
+                if tmp=="" or tmp==None:
+                    tmp="Take Uber"
+                st.write(f'{idx}. {tmp}, \nEmissions: {round(step.emissions,2)}')
                 if type(step.polyline) is list:
                     c=random.randrange(1,255)
                     c1=random.randrange(1,255)
-                    st.write(step.polyline)
                     merged = list(itertools.chain(*[step.polyline]))
-                    # st.write(list(map(lambda x: x.points,merged)))
                     for i in merged:
-                        polys = polyline.decode(str(i.points))
-                        df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,c1,c)} )
+                        if type(i) is list:
+                            for j in i:
+                                polys = polyline.decode(str(j.points))
+                                df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,c1,c)} )
+                        else:
+                            polys = polyline.decode(str(i.points))
+                            df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,c1,c)} )
                     
                 else: 
                     polys = polyline.decode(str(step.polyline.points))
@@ -241,13 +247,14 @@ try:
             st.write("CO2 emissions:", str(round(data[0].co2, 2)))
             
 except Exception as e:
-    # response = g4f.ChatCompletion.create(
-    #         model="gpt-3.5-turbo",
-    #         messages=[{"role": "user", "content": f"so you got this error {e}, describe this error to end user (dont tell anything about code error or something)"}],
-    #         provider=provider,
-    #         proxy='zPM6ju8G:inyA2RYN@91.204.182.244:63522'
-    #     )
-    st.write(e)
+    st.write("#### :orange[The app encountered a problem!]\nBut our AI will help you!")
+    response = g4f.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": f"so you got this error {e}, describe this error to end user (dont tell anything about code error or something). You are helping end user in navigation app, so any api, timeout, None errors you should explain accordingly, if error is about str or float, just tell user to recheck inputs, dont tell about types. Respond up to 50 words"}],
+            provider=provider,
+            proxy='zPM6ju8G:inyA2RYN@91.204.182.244:63522'
+        )
+    st.write(response)
     
 
 
