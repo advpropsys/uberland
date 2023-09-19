@@ -12,6 +12,8 @@ from core.router import get_direction, DirectionConfig
 from dotenv import load_dotenv
 import os
 import warnings
+from data_1 import data_step
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import g4f
@@ -209,45 +211,25 @@ try:
                                            "avoidFerries" if ferry_state else "", "avoidIndoor" if indoor_state else ""]
                                     )
 
-    r,e,a = st.tabs(["Route","Eco Route","Alternative"])
+    r,e,a = st.tabs(["Route","Alternative","Eco"])
 
     data = None
     if directions:
             data = get_direction(directions)
+    data = sorted(data, key=lambda x: x.co2, reverse=True)
     with r:
         if data:
-            steps = data[0].steps
-            st.metric("CO2 emissions","co2",-round(data[0].co2,2))
-            df_r=pd.DataFrame(columns=['name','path','color'])
-            for idx, step in enumerate(steps):
-                tmp=step.html_instructions.replace("\n","")
-                if tmp=="" or tmp==None:
-                    tmp="Take Uber"
-                st.write(f'{idx}. {tmp}, \nEmissions: {round(step.emissions,2)}')
-                if type(step.polyline) is list:
-                    c=random.randrange(1,255)
-                    c1=random.randrange(1,255)
-                    merged = list(itertools.chain(*[step.polyline]))
-                    for i in merged:
-                        if type(i) is list:
-                            for j in i:
-                                polys = polyline.decode(str(j.points))
-                                df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,c1,c)} )
-                        else:
-                            polys = polyline.decode(str(i.points))
-                            df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,c1,c)} )
-                    
-                else: 
-                    polys = polyline.decode(str(step.polyline.points))
-                    df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,random.randrange(1,255),random.randrange(1,255))})
+            data_step(data,0,pdk_graph)
+    with a:
+        if data:
+            data_step(data,2,pdk_graph)
+    with e:
+        if data:
+            data_step(data,1,pdk_graph)
             
-            pdk_graph(df_r)
-            st.write("Arrival time:",(datetime.datetime.now()+datetime.timedelta(seconds=data[0].total_duration)).strftime("%H:%M, %d.%m"))
-            st.write("Total Cost:", str(round(data[0].total_cost,2)), "USD")
-            st.write("Total Taxi Cost:", str(round(data[0].total_taxi_cost, 2)), "USD")
-            st.write("CO2 emissions:", str(round(data[0].co2, 2)))
             
 except Exception as e:
+    st.write(e)
     st.write("#### :orange[The app encountered a problem!]\nBut our AI will help you!")
     response = g4f.ChatCompletion.create(
             model="gpt-3.5-turbo",
