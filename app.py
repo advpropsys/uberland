@@ -89,18 +89,19 @@ try:
     target_coords=None
     country = None
     target_cost_transport = None
+    
         
     left, right = st.columns(2)
     with left:
         pickup = st.text_input('Write pickup point')
         # googlemaps.places_autocomplete('new', session_token='AIzaSyBKgD8C__tyR3fnWy3HsommzNnEZ7EETVw',  types='(cities)')
         st.write('Pickup location')
-        st_data = st_folium(m, width=720, feature_group_to_add=fg)
+        st_data = st_folium(m, center = st.session_state["center"],width=720, feature_group_to_add=fg)
         
     with right:
         target = st.text_input('Write target point')
         st.write('Target location')
-        st_data1 = st_folium(m1, width=720, feature_group_to_add=fg1, key='1')
+        st_data1 = st_folium(m1, center=st.session_state["center1"], width=720, feature_group_to_add=fg1, key='1')
 
     pickup_loc=[]
 
@@ -126,6 +127,15 @@ try:
             st.session_state['markers1'].append(folium.Marker(
                 target_coords, popup='Target')
             )
+    
+    if (pickup_coords):
+        st.session_state['center'] = pickup_coords
+    else:
+        st.session_state['center'] = (-33.87318,151.20701)
+    if (target_coords):
+        st.session_state['center1'] = target_coords
+    else:
+        st.session_state['center1'] = (-33.87318,151.20701)
 
     st.write('Directions Config')
 
