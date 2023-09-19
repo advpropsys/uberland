@@ -229,7 +229,6 @@ try:
             
             
 except Exception as e:
-    st.write(e)
     st.write("#### :orange[The app encountered a problem!]\nBut our AI will help you!")
     response = g4f.ChatCompletion.create(
             model="gpt-3.5-turbo",
