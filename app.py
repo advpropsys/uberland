@@ -205,7 +205,8 @@ try:
                                     transport_fee=float(target_cost_transport),
                                     taxi_fee=float(target_cost_transport),
                                     research_alpha_bus=research_alpha_bus,
-                                    avoid=['avoidToll' if toll_state else ""]
+                                    avoid=['avoidToll' if toll_state else "", 'avoidHighways' if high_state else "",\
+                                           "avoidFerries" if ferry_state else "", "avoidIndoor" if indoor_state else ""]
                                     )
 
     r,e,a = st.tabs(["Route","Eco Route","Alternative"])
