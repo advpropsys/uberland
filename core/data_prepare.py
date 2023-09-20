@@ -17,9 +17,9 @@ def flatten(x):
 def data_step(data, pdk_graph,max_total_cost,max_total_taxi_cost,max_co2):
             col1, col2, col3, col4 = st.columns(4)
             col1.metric("Arrival time", (datetime.datetime.now()+datetime.timedelta(seconds=data.total_duration)).strftime("%H:%M, %d.%m"))
-            col2.metric("Total Cost", str(round(data.total_cost,2)) + " $", delta=max_total_cost-data.total_cost)
-            col3.metric("Total Taxi Cost",str(round(data.total_taxi_cost, 2)) + " $", delta=max_total_taxi_cost-data.total_taxi_cost)
-            col4.metric("CO2 emissions", str(round(data.co2, 2)), delta=max_co2-data.co2)
+            col2.metric("Total Cost", str(round(data.total_cost,2)) + " $", delta=round(max_total_cost-data.total_cost,2))
+            col3.metric("Total Taxi Cost",str(round(data.total_taxi_cost, 2)) + " $", delta=round(max_total_taxi_cost-data.total_taxi_cost,2))
+            col4.metric("CO2 emissions", str(round(data.co2, 2)), delta=round(max_co2-data.co2,2))
             steps = data.steps
             df_r=pd.DataFrame(columns=['name','path','color'])
             for idx, step in enumerate(steps):
