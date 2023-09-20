@@ -15,6 +15,10 @@ venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## User Guide
+![](7.png)
+![](8.png)
+
 To run the application locally:
 
 ```
