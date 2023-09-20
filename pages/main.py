@@ -34,7 +34,7 @@ try:
 
     st.set_page_config(
         layout="wide",
-        page_title="UberLand Perfect Transit",
+        page_title="UberLand’s Perfect Transit",
     )
 
     if "markers" not in st.session_state:
@@ -44,7 +44,7 @@ try:
         st.session_state["markers1"] = []
 
 
-    st.write("# UberLand Perfect Transit")
+    st.write("# UberLand’s Perfect Transit")
     st.write("### :orange[ Team: taxi drivers]")
 
 
