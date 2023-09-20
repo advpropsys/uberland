@@ -228,7 +228,6 @@ try:
 
 except Exception as e:
     st.write("#### :orange[The app encountered a problem!]\nBut our AI will help you!")
-    st.write(e)
     response = g4f.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": f"so you got this error {e}, describe this error to end user (dont tell anything about code error or something). You are helping end user in navigation app, so any api, timeout, None errors you should explain accordingly, if error is about str or float, just tell user to recheck inputs, dont tell about types. Respond up to 50 words"}],
