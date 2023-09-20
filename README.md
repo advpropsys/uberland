@@ -24,3 +24,6 @@ To run the application locally:
 ```
 streamlit run app.py
 ```
+
+DISCLAIMER
+Currently, we are utilizing test data for emissions and regional pricing, but in the future, these data sources can be replaced with information collected from UberLand.
