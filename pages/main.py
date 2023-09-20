@@ -104,12 +104,12 @@ try:
         
     left, right = st.columns(2)
     with left:
-        pickup = st.text_input('Write pickup point')
+        pickup = st.text_input('Pickup point')
         st.write('Pickup location')
         st_data = st_folium(m, center = st.session_state["center"],width=720, feature_group_to_add=fg)
         
     with right:
-        target = st.text_input('Write target point')
+        target = st.text_input('Target point')
         st.write('Target location')
         st_data1 = st_folium(m1, center=st.session_state["center1"], width=720, feature_group_to_add=fg1, key='1')
 
