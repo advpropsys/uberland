@@ -1,0 +1,9 @@
+[[pages]]
+path = "pages/main.py"
+name = "Home"
+icon = "🏠"
+
+[[pages]]
+path = "pages/docs.py"
+name = "Docs"
+icon = "📄"

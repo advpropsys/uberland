@@ -14,9 +14,13 @@ def flatten(x):
         return [x]
 
             
-def data_step(data,x, pdk_graph):
-            steps = data[x].steps
-            st.metric("CO2 emissions","co2",-round(data[x].co2,2))
+def data_step(data, pdk_graph,max_total_cost,max_total_taxi_cost,max_co2):
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Arrival time", (datetime.datetime.now()+datetime.timedelta(seconds=data.total_duration)).strftime("%H:%M, %d.%m"))
+            col2.metric("Total Cost", str(round(data.total_cost,2)) + " $", delta=max_total_cost-data.total_cost)
+            col3.metric("Total Taxi Cost",str(round(data.total_taxi_cost, 2)) + " $", delta=max_total_taxi_cost-data.total_taxi_cost)
+            col4.metric("CO2 emissions", str(round(data.co2, 2)), delta=max_co2-data.co2)
+            steps = data.steps
             df_r=pd.DataFrame(columns=['name','path','color'])
             for idx, step in enumerate(steps):
                 tmp=step.html_instructions.replace("\n","")
@@ -46,7 +50,3 @@ def data_step(data,x, pdk_graph):
                     df_r.loc[len(df_r)] = pd.Series({'name':step.html_instructions,'path':list(map(lambda x: x[::-1],polys)),'color':(255,random.randrange(1,255),random.randrange(1,255))})
             
             pdk_graph(df_r)
-            st.write("Arrival time:",(datetime.datetime.now()+datetime.timedelta(seconds=data[x].total_duration)).strftime("%H:%M, %d.%m"))
-            st.write("Total Cost:", str(round(data[x].total_cost,2)), "USD")
-            st.write("Total Taxi Cost:", str(round(data[x].total_taxi_cost, 2)), "USD")
-            st.write("CO2 emissions:", str(round(data[x].co2, 2)))
